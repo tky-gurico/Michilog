@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Simple Map</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+  <label>検索ワード：</label>
+  <input type="text" name="name" size="30">
+  <label>　　種別：</label>
+  <input type="radio" name="good" value="いいね">いいね
+  <input type="radio" name="bad" value="悪いね">悪いね
+    <div id="map"></div>
+    <script>
+       // 参考サイト：ベース https://blog.codecamp.jp/googlemaps-api
+       // 参考サイト：公式 https://developers.google.com/maps/documentation/javascript/adding-a-google-map
+       // 参考サイト：複数マーカー（動かないけど、説明が丁寧） https://www.tam-tam.co.jp/tipsnote/javascript/post7755.html
+       // 参考サイト：複数マーカー https://leben.mobi/blog/google_maps_api_macker/javascript/
+    
+       var map;
+       var marker = [];
+       var infoWindow = [];
+       var markerData = [ // マーカーを立てる場所名・緯度・経度
+        {
+          /*
+          name: '道が狭い',
+          lat: 34.365535, // 緯度
+          lng: 132.470080 // 経度
+        }, {
+          name: '怖い',
+          lat: 34.365816, // 緯度
+          lng: 132.470589 // 経度
+        }, {
+          name: '道がガタガタ',
+          lat: 34.365550, // 緯度
+          lng: 132.471269 // 経度
+        }, {
+          name: '人通りが多い',
+          lat: 34.364974, // 緯度
+          lng: 132.470357 // 経度
+        }, {
+        */
+          name: 'きれいな道',
+          lat: 34.365935, // 緯度
+          lng: 132.471180 // 経度
+        }, {
+          name: '車が少ない',
+          lat: 34.365535, // 緯度
+          lng: 132.470180 // 経度
+        }, {
+          name: 'ストレスがない',
+          lat: 34.365435, // 緯度
+          lng: 132.471080 // 経度
+        }
+       ];
+         
+       function initMap() {
+        // 地図の作成
+           var mapLatLng = new google.maps.LatLng({lat: markerData[0]['lat'], lng: markerData[0]['lng']}); // 緯度経度のデータ作成
+          map = new google.maps.Map(document.getElementById('map'), { // #sampleに地図を埋め込む
+            center: mapLatLng, // 地図の中心を指定
+             zoom: 18 // 地図のズームを指定
+          });
+         
+        // マーカー毎の処理
+        for (var i = 0; i < markerData.length; i++) {
+               markerLatLng = new google.maps.LatLng({lat: markerData[i]['lat'], lng: markerData[i]['lng']}); // 緯度経度のデータ作成
+               marker[i] = new google.maps.Marker({ // マーカーの追加
+                position: markerLatLng, // マーカーを立てる位置を指定
+                   map: map, // マーカーを立てる地図を指定
+                   icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+              });
+         
+            infoWindow[i] = new google.maps.InfoWindow({ // 吹き出しの追加
+                content: '<div class="map">' + markerData[i]['name'] + '</div>' // 吹き出しに表示する内容
+              });
+         
+            markerEvent(i); // マーカーにクリックイベントを追加
+        }
+       }
+         
+       // マーカーにクリックイベントを追加
+       function markerEvent(i) {
+           marker[i].addListener('click', function() { // マーカーをクリックしたとき
+             infoWindow[i].open(map, marker[i]); // 吹き出しの表示
+         });
+       }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=XXXXXXXX&callback=initMap"
+    async defer></script>
+  </body>
+</html>
