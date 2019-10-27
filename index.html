@@ -4,7 +4,29 @@
     <title>Simple Map</title>
     <meta name="viewport" content="initial-scale=1.0" />
     <meta charset="utf-8" />
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+      integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+      crossorigin="anonymous"
+    />
+    <!-- Bootstrap Javascript(jQuery含む) -->
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+      integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+      integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+      crossorigin="anonymous"
+    ></script>
     <style>
       /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
@@ -14,20 +36,46 @@
       /* Optional: Makes the sample page fill the window. */
       html,
       body {
-        height: 100%;
+        height: 94%;
         margin: 0;
         padding: 0;
+      }
+      div {
+        margin: 4px;
       }
     </style>
   </head>
   <body>
-    <label>検索ワード：</label>
-    <input type="text" name="name" size="30" />
-    <label> 種別：</label>
-    <select name="evaluation">
-      <option value="good">いいね</option>
-      <option value="bad">悪いね</option>
-    </select>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-8">
+          <form class="form-inline">
+            <div class="form-group">
+              <label>ここから </label>
+              <input type="text" class="form-control" size="30" />
+            </div>
+            <div class="form-group">
+              <label>ここまで </label>
+              <input type="text" class="form-control" size="30" />
+            </div>
+            <button type="submit" class="btn btn-default">
+              経路探索
+            </button>
+          </form>
+        </div>
+        <div class="col-3">
+          <div class="form-inline">
+            <div class="form-group">
+              <label>種別：</label>
+              <select id="evaluation" name="evaluation" class="form-control">
+                <option value="good">いいねぇ～👍</option>
+                <option value="bad">悪いねぇ～👎</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="map"></div>
     <script>
       // 参考サイト：ベース https://blog.codecamp.jp/googlemaps-api
@@ -182,7 +230,7 @@
       });
     </script>
     <script
-      src="https://maps.googleapis.com/maps/api/js?key=XXXXX&callback=initMap"
+      src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap"
       async
       defer
     ></script>
