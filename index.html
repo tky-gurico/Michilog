@@ -58,7 +58,7 @@
               <label>ここまで </label>
               <input type="text" class="form-control" size="30" />
             </div>
-            <button type="submit" class="btn btn-default">
+            <button type="submit" class="btn btn-default" id="search">
               経路探索
             </button>
           </form>
@@ -138,6 +138,7 @@
         }
       ];
 
+      // マップ表示処理
       function initMap() {
         // 地図の作成
         var defaultPosition = new google.maps.LatLng({
@@ -161,6 +162,7 @@
         });
       }
 
+      // マーカー表示処理（マップが表示されていること前提）
       function dispMakers(eval) {
         // マーカーを初期化（既にあるやつを削除）
         for (var i = 0; i < marker.length; i++) {
@@ -192,6 +194,7 @@
         }
       }
 
+      // 評価種別に応じたマーカーデータの取得
       function getMarkerData(eval) {
         if (eval == `good`) {
           return markerDataGood;
@@ -200,6 +203,7 @@
         }
       }
 
+      // 評価種別に応じたマーカーアイコンの取得
       function getMarkerIcon(eval) {
         if (eval == `good`) {
           //return "https://maps.google.com/mapfiles/ms/icons/red-dot.png";
@@ -223,14 +227,20 @@
         }
       }
 
+      // セレクトボックスの選択変更時の処理
       $("[name=evaluation]").change(function() {
         var val = $("[name=evaluation]").val();
 
         dispMakers(val);
       });
+
+      // 経路選択ボタン押下時の処理
+      $("#search").on("click", function() {
+        initMap();
+      });
     </script>
     <script
-      src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap"
+      src="https://maps.googleapis.com/maps/api/js?key="
       async
       defer
     ></script>
