@@ -51,12 +51,17 @@
         <div class="col-8">
           <form class="form-inline">
             <div class="form-group">
-              <label>ここから </label>
-              <input type="text" class="form-control" size="30" />
+              <label>出発地： </label>
+              <input type="text" class="form-control" size="30" id="origin" />
             </div>
             <div class="form-group">
-              <label>ここまで </label>
-              <input type="text" class="form-control" size="30" />
+              <label> →　目的地： </label>
+              <input
+                type="text"
+                class="form-control"
+                size="30"
+                id="destination"
+              />
             </div>
             <button type="submit" class="btn btn-default" id="search">
               経路探索
@@ -105,16 +110,26 @@
         },
         {
           name: "見通しが良い",
-          lat: 34.365783,
-          lng: 132.470633
+          lat: 34.363843,
+          lng: 132.469324
+        },
+        {
+          name: "人通りが少ない",
+          lat: 34.364485,
+          lng: 132.4676
+        },
+        {
+          name: "人通りが少ない",
+          lat: 34.365096,
+          lng: 132.4677
         }
       ];
       var markerDataBad = [
         // マーカーを立てる場所名・緯度・経度
         {
           name: "道が狭い",
-          lat: 34.365522,
-          lng: 132.471261
+          lat: 34.36487,
+          lng: 132.468435
         },
         {
           name: "怖い",
@@ -123,8 +138,8 @@
         },
         {
           name: "道がガタガタ",
-          lat: 34.365345,
-          lng: 132.470381
+          lat: 34.365955,
+          lng: 132.468113
         },
         {
           name: "人通りが多い",
@@ -132,9 +147,9 @@
           lng: 132.469463
         },
         {
-          name: "道が狭い",
-          lat: 34.364991,
-          lng: 132.470085
+          name: "見通しが悪い",
+          lat: 34.364826,
+          lng: 132.46917
         }
       ];
 
@@ -148,7 +163,8 @@
         map = new google.maps.Map(document.getElementById("map"), {
           // #sampleに地図を埋め込む
           center: defaultPosition, // 地図の中心を指定
-          zoom: 18 // 地図のズームを指定
+          zoom: 18, // 地図のズームを指定
+          mapTypeId: google.maps.MapTypeId.ROADMAP
         });
 
         dispMakers($("[name=evaluation]").val());
@@ -237,6 +253,34 @@
       // 経路選択ボタン押下時の処理
       $("#search").on("click", function() {
         initMap();
+
+        // とりあえず経路はべた書きです・・・
+        var origin = "熊平製作所 ショールーム（広島）";
+        var destination = "県立広島病院";
+
+        $("#origin").val(origin);
+        $("#destination").val(destination);
+
+        // 経路表示用インスタンス
+        var DS = new google.maps.DirectionsService();
+        var DR = new google.maps.DirectionsRenderer({
+          suppressMarkers: true
+        });
+
+        //  mapとDirectionsServiceを紐づける
+        DR.setMap(map);
+
+        // 経路検索用リクエスト（べた書き・・・）
+        var request = {
+          origin: origin,
+          destination: destination,
+          travelMode: google.maps.TravelMode.DRIVING
+        };
+
+        // 経路表示（べた書き・・・）
+        DS.route(request, function(result, status) {
+          DR.setDirections(result);
+        });
       });
     </script>
     <script
