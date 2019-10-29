@@ -73,8 +73,11 @@
             <div class="form-group">
               <label>種別：</label>
               <select id="evaluation" name="evaluation" class="form-control">
+                <option value="none"></option>
                 <option value="good">いいねぇ～👍</option>
                 <option value="bad">悪いねぇ～👎</option>
+                <option value="autoGood">いいねぇ～👍(SDLデータ)</option>
+                <option value="autoBad">悪いねぇ～👎(SDLデータ)</option>
               </select>
               <div></div>
               <button type="submit" class="btn btn-default" id="routeSearch">
@@ -154,7 +157,40 @@
           lng: 132.495053
         },
       ];
-           
+
+      var markerDataAutoGood = [
+        // マーカーを立てる場所名・緯度・経度
+        {
+          name: `ブレーキが少ない`,
+          lat: 34.387355,
+          lng: 132.480769
+        },
+        {
+          name: 'ハンドル操作が少ない',
+          lat: 34.386676,
+          lng: 132.496423
+        }
+      ];
+
+      var markerDataAutoBad = [
+        // マーカーを立てる場所名・緯度・経度
+        {
+          name: "事故が多い",
+          lat: 34.391680,
+          lng: 132.488088
+        },
+        {
+          name: "ブレーキが多い",
+          lat: 34.391275,
+          lng: 132.489823
+        },
+        {
+          name: "急ハンドルが多い",
+          lat: 34.390073,
+          lng: 132.495040
+        },
+      ];
+
       // マップ表示処理
       function initMap() {
         // 地図の作成
@@ -234,13 +270,17 @@
       function getMarkerData(eval) {
         if (eval == `good`) {
           return markerDataGood;
-        } else {
+        }else if(eval == `bad`) {
           return markerDataBad;
+        }else if(eval == `autoGood`){
+          return markerDataAutoGood;
+        }else{
+          return markerDataAutoBad;
         }
       }
       // 評価種別に応じたマーカーアイコンの取得
       function getMarkerIcon(eval) {
-        if (eval == `good`) {
+        if ((eval == `good`) || (eval == `autoGood`)){
           //return "https://maps.google.com/mapfiles/ms/icons/red-dot.png";
           // return {
           //   path: "M -8,-8 8,8 M 8,-8 -8,8", //座標（×）
@@ -379,46 +419,47 @@
         searchRoute($("[name=evaluation]").val());
       });
 
-      // $("#snsLink").on("click", function() {
-      //   let plcSrvice = new google.maps.places.PlacesService(map);
 
-      //   plcSrvice.nearbySearch(
-      //     {
-      //       location: new google.maps.LatLng(34.386424, 132.480188),
-      //       radius: '800',
-      //       type: ['restaurant'],
-      //       keyword: 'ラーメン',
-      //     },
-      //     plcServiceCallBack
-      //   );
+      // 周辺情報の取得
+      function jumpSnsPages() {
+        let plcSrvice = new google.maps.places.PlacesService(map);
 
-      // });
-    
-      //  function plcServiceCallBack(results, status, pagination){
-      //   if(status == google.maps.places.PlacesService.OK){
-      //     resLocationName.push(results);
-      //     if(pagination.nextPage){
-      //       setTimeout(pagination.nextPage(), 1000);
-      //     }
-      //   }
-      //   console.log(results);
+        plcSrvice.nearbySearch(
+          {
+            location: new google.maps.LatLng(34.386424, 132.480188),
+            radius: '800',
+            type: ['restaurant'],
+            keyword: 'ラーメン',
+          },
+          plcServiceCallBack
+        );
 
-      //   let index = Math.floor(Math.random() * (results.length));
-      //   let place = results[index];
-      //   let keyName = place.name;
-      //   keyName = keyName.trim();
-      //   console.log(keyName);
+      }
+      function plcServiceCallBack(results, status, pagination){
+        if(status == google.maps.places.PlacesService.OK){
+          resLocationName.push(results);
+          if(pagination.nextPage){
+            setTimeout(pagination.nextPage(), 1000);
+          }
+        }
+        console.log(results);
 
-      //   let jumpPage = 'https://www.instagram.com/explore/tags/' + keyName;
+        let index = Math.floor(Math.random() * (results.length));
+        let place = results[index];
+        let keyName = place.name;
+        keyName = keyName.trim();
+        console.log(keyName);
 
-      //   window.open(jumpPage,'subwin','width=540,height=640,resizable=yes')
-      //   console.log("new window ");
+        let jumpPage = 'https://www.instagram.com/explore/tags/' + keyName;
 
-      // }
+        window.open(jumpPage,'subwin','width=540,height=640,resizable=yes')
+        console.log("new window ");
+
+      }
 
     </script>
     <script
-      src="https://maps.googleapis.com/maps/api/js?key=___________&libraries=places&callback=initMap"
+      src="https://maps.googleapis.com/maps/api/js?key=_______&libraries=places&callback=initMap"
       async
       defer
     ></script>
