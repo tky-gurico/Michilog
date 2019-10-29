@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Michilog Map</title>
+    <meta name="viewport" content="initial-scale=1.0" />
+    <meta charset="utf-8" />
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+      integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+      crossorigin="anonymous"
+    />
+    <!-- Bootstrap Javascript(jQuery含む) -->
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+      integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+      integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html,
+      body {
+        height: 94%;
+        margin: 0;
+        padding: 0;
+      }
+      div {
+        margin: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-8">
+          <form class="form-inline">
+            <div class="form-group">
+              <label>出発地： </label>
+              <input type="text" class="form-control" size="30" id="origin" />
+            </div>
+            <div class="form-group">
+              <label> →　目的地： </label>
+              <input
+                type="text"
+                class="form-control"
+                size="30"
+                id="destination"
+              />
+            </div>
+            <button type="submit" class="btn btn-default" id="search">
+              経路探索
+            </button>
+          </form>
+        </div>
+        <div class="col-3">
+          <div class="form-inline">
+            <div class="form-group">
+              <label>種別：</label>
+              <select id="evaluation" name="evaluation" class="form-control">
+                <option value="good">いいねぇ～👍</option>
+                <option value="bad">悪いねぇ～👎</option>
+              </select>
+              <div></div>
+              <button type="submit" class="btn btn-default" id="routeSearch">
+                routeSearch
+              </button>
+              <div></div>
+              <!-- <button type="submit" class="btn btn-default" id="snsLink">
+                  スポット検索
+              </button> -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="map"></div>
+    <script>
+      // 参考サイト：ベース https://blog.codecamp.jp/googlemaps-api
+      // 参考サイト：公式 https://developers.google.com/maps/documentation/javascript/adding-a-google-map
+      // 参考サイト：複数マーカー（動かないけど、説明が丁寧） https://www.tam-tam.co.jp/tipsnote/javascript/post7755.html
+      // 参考サイト：複数マーカー https://leben.mobi/blog/google_maps_api_macker/javascript/
+      var map;
+      var marker = [];
+      var infoWindow = [];
+      var markerDataGood = [
+        // マーカーを立てる場所名・緯度・経度
+        {
+          name: '<a href="http://google.com">きれいな道</a>',
+          lat: 34.387355,
+          lng: 132.480769
+        },
+        // {
+        //   name: "車が少ない",
+        //   lat: 34.3665,
+        //   lng: 132.469984
+        // },
+        {
+          name: "ストレスがない",
+          lat: 34.390757,
+          lng: 132.483073
+        },
+        {
+          name: "見通しが良い",
+          lat: 34.389274,
+          lng: 132.487308
+        },
+        // {
+        //   name: "人通りが少ない",
+        //   lat: 34.364485,
+        //   lng: 132.4676
+        // },
+        {
+          name: "人通りが少ない",
+          lat: 34.386676,
+          lng: 132.496423
+        }
+      ];
+      var markerDataBad = [
+        // マーカーを立てる場所名・緯度・経度
+        {
+          name: "道が狭い",
+          lat: 34.391680,
+          lng: 132.488088
+        },
+        {
+          name: "怖い",
+          lat: 34.391275,
+          lng: 132.489823
+        },
+        {
+          name: "車によっては曲がれない",
+          lat: 34.390073,
+          lng: 132.495040
+        },
+        {
+          name: "見通しが悪い",
+          lat: 34.392125,
+          lng: 132.495053
+        },
+      ];
+           
+      // マップ表示処理
+      function initMap() {
+        // 地図の作成
+        var defaultPosition = new google.maps.LatLng({
+          lat: 34.366,
+          lng: 132.471
+        }); // とりあえず決め打ち・・・
+
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: new google.maps.LatLng(34.391531, 132.490962), 
+          zoom: 16, 
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        });
+
+        src = "ファミリーマート広島段原東店";
+        dst = "イオンモール広島府中";
+        $("#origin").val(src);
+        $("#destination").val(dst);
+        let routeRequest = {
+          origin: new google.maps.LatLng(34.386424, 132.480188), // 出発地
+          destination: new google.maps.LatLng(34.393155, 132.498090), // 目的地
+          travelMode: google.maps.DirectionsTravelMode.DRIVING, 
+        };
+      
+        let d = new google.maps.DirectionsService(); // ルート検索オブジェクト
+        let r = new google.maps.DirectionsRenderer({ // ルート描画オブジェクト
+          map: map, // 描画先の地図
+          preserveViewport: true, // 描画後に中心点をずらさない
+          suppressMarkers: true
+        });
+        // ルート検索
+        d.route(routeRequest, function(result, status){
+        // OKの場合ルート描画
+          if (status == google.maps.DirectionsStatus.OK) {
+              r.setDirections(result);
+          }
+        });
+
+        //dispMakers($("[name=evaluation]").val());
+      }
+      // マーカーにクリックイベントを追加
+      function markerEvent(i) {
+        marker[i].addListener("click", function() {
+          // マーカーをクリックしたとき
+          infoWindow[i].open(map, marker[i]); // 吹き出しの表示
+        });
+      }
+      // マーカー表示処理（マップが表示されていること前提）
+      function dispMakers(eval) {
+        // マーカーを初期化（既にあるやつを削除）
+        for (var i = 0; i < marker.length; i++) {
+          marker[i].setMap(null);
+        }
+        // マーカー毎の処理
+        var markerData = getMarkerData(eval);
+        for (var i = 0; i < markerData.length; i++) {
+          markerLatLng = new google.maps.LatLng({
+            lat: markerData[i]["lat"],
+            lng: markerData[i]["lng"]
+          }); // 緯度経度のデータ作成
+          marker[i] = new google.maps.Marker({
+            // マーカーの追加
+            position: markerLatLng, // マーカーを立てる位置を指定
+            icon: getMarkerIcon(eval),
+            animation: google.maps.Animation.DROP
+          });
+          infoWindow[i] = new google.maps.InfoWindow({
+            // 吹き出しの追加
+            content: '<div class="map">' + markerData[i]["name"] + "</div>" // 吹き出しに表示する内容
+          });
+          markerEvent(i); // マーカーにクリックイベントを追加
+          // マーカーを設置
+          marker[i].setMap(map);
+        }
+      }
+      // 評価種別に応じたマーカーデータの取得
+      function getMarkerData(eval) {
+        if (eval == `good`) {
+          return markerDataGood;
+        } else {
+          return markerDataBad;
+        }
+      }
+      // 評価種別に応じたマーカーアイコンの取得
+      function getMarkerIcon(eval) {
+        if (eval == `good`) {
+          //return "https://maps.google.com/mapfiles/ms/icons/red-dot.png";
+          // return {
+          //   path: "M -8,-8 8,8 M 8,-8 -8,8", //座標（×）
+          //   strokeColor: "#000000", //線の色
+          //   strokeWeight: 4.0, //線の太さ
+          //   scaledSize: new google.maps.Size(40, 40) //サイズ
+          // };
+          return {
+            url:
+              //"https://chart.apis.google.com/chart?chst=d_map_spin&chld=0.8|0|ff4500|10|_|good"
+              "https://chart.apis.google.com/chart?chst=d_map_pin_letter_withshadow&chld=%E2%80%A2|ff6347"
+          };
+        } else {
+          return {
+            url:
+              //"https://chart.apis.google.com/chart?chst=d_map_spin&chld=0.8|0|0000ff|10|_|bad"
+              "https://chart.apis.google.com/chart?chst=d_map_pin_letter_withshadow&chld=%E2%80%A2|4169e1"
+          };
+        }
+      }
+      
+      // 地名取得例  API GocodeAPIを有効にする必要あり
+      function getLocalAreaName(){
+        let testLatLng = new google.maps.LatLng({
+          lat: 34.387246,
+          lng: 132.455530
+        }); 
+        let geocoder = new google.maps.Geocoder;
+        let areaName = '';
+
+        geocoder.geocode({'location': testLatLng}, function(results, status) {
+          if (status === 'OK') {
+            console.log(results);
+            let searchArea = results[0].address_components.filter(function(component) {
+              return component.types.indexOf("sublocality_level_2") > -1;
+            });
+            console.log(searchArea[0].long_name);
+            areaName = searchArea[0].long_name;
+          } else {
+            window.alert('Geocoder failed due to: ' + status);
+          }
+        });
+      }
+      // 経由あり経路表示API
+      function searchRoute(eval){
+        let src = document.getElementById("origin").value;
+        let dst = document.getElementById("destination").value;
+        console.log("eval = "+eval);
+        if(src === null){
+          alert('出発地が入力されていません');
+          return;
+        }
+        else if(dst === null){
+          alert('目的地が入力されていません');
+          return;
+        }
+
+        src = "ファミリーマート広島段原東店";
+        dst = "イオンモール広島府中";
+        $("#origin").val(src);
+        $("#destination").val(dst);
+
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: new google.maps.LatLng(34.391531, 132.490962), 
+          zoom: 16
+        });
+
+        
+        let arrayMarker =[];
+        let markerData = getMarkerData(eval);
+
+        for(let i=0;i<markerDataGood.length;i++){
+          arrayMarker.push({ location: new google.maps.LatLng({
+          lat: markerData[i]["lat"],
+          lng: markerData[i]["lng"]
+        }), stopover: true });
+        }
+
+        let routeRequest = {
+          origin: new google.maps.LatLng(34.386424, 132.480188), // 出発地
+          destination: new google.maps.LatLng(34.393155, 132.498090), // 目的地
+          waypoints: arrayMarker,
+          travelMode: google.maps.DirectionsTravelMode.DRIVING, 
+        };
+      
+        let d = new google.maps.DirectionsService(); // ルート検索オブジェクト
+        let r = new google.maps.DirectionsRenderer({ // ルート描画オブジェクト
+          map: map, // 描画先の地図
+          suppressMarkers: true,
+          preserveViewport: true, // 描画後に中心点をずらさない
+        });
+        // ルート検索
+        d.route(routeRequest, function(result, status){
+        // OKの場合ルート描画
+          if (status == google.maps.DirectionsStatus.OK) {
+              r.setDirections(result);
+          }
+        }); 
+
+        dispMakers($("[name=evaluation]").val());
+      }
+
+      // セレクトボックスの選択変更時の処理
+      $("[name=evaluation]").change(function() {
+        var val = $("[name=evaluation]").val();
+        dispMakers(val);
+      });
+      // 経路選択ボタン押下時の処理
+      $("#search").on("click", function() {
+        initMap();
+        // とりあえず経路はべた書きです・・・
+        var origin = "熊平製作所 ショールーム（広島）";
+        var destination = "県立広島病院";
+        $("#origin").val(origin);
+        $("#destination").val(destination);
+        // 経路表示用インスタンス
+        var DS = new google.maps.DirectionsService();
+        var DR = new google.maps.DirectionsRenderer({
+          suppressMarkers: true
+        });
+        //  mapとDirectionsServiceを紐づける
+        DR.setMap(map);
+        // 経路検索用リクエスト（べた書き・・・）
+        var request = {
+          origin: origin,
+          destination: destination,
+          travelMode: google.maps.TravelMode.DRIVING
+        };
+        // 経路表示（べた書き・・・）
+        DS.route(request, function(result, status) {
+          DR.setDirections(result);
+        });
+      });
+      //  地名を検索
+      $("#routeSearch").on("click", function() {
+        searchRoute($("[name=evaluation]").val());
+      });
+
+      // $("#snsLink").on("click", function() {
+      //   let plcSrvice = new google.maps.places.PlacesService(map);
+
+      //   plcSrvice.nearbySearch(
+      //     {
+      //       location: new google.maps.LatLng(34.386424, 132.480188),
+      //       radius: '800',
+      //       type: ['restaurant'],
+      //       keyword: 'ラーメン',
+      //     },
+      //     plcServiceCallBack
+      //   );
+
+      // });
+    
+      //  function plcServiceCallBack(results, status, pagination){
+      //   if(status == google.maps.places.PlacesService.OK){
+      //     resLocationName.push(results);
+      //     if(pagination.nextPage){
+      //       setTimeout(pagination.nextPage(), 1000);
+      //     }
+      //   }
+      //   console.log(results);
+
+      //   let index = Math.floor(Math.random() * (results.length));
+      //   let place = results[index];
+      //   let keyName = place.name;
+      //   keyName = keyName.trim();
+      //   console.log(keyName);
+
+      //   let jumpPage = 'https://www.instagram.com/explore/tags/' + keyName;
+
+      //   window.open(jumpPage,'subwin','width=540,height=640,resizable=yes')
+      //   console.log("new window ");
+
+      // }
+
+    </script>
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=___________&libraries=places&callback=initMap"
+      async
+      defer
+    ></script>
+  </body>
+</html>
